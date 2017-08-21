@@ -1,0 +1,245 @@
+<head>
+    <title>{{ title }}</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/6.6.7/sweetalert2.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/6.6.7/sweetalert2.css" />
+    <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="row content">
+            <div class="col-sm-3 sidenav hidden-xs">
+                <h3>{{main}}</h3>
+                <p> Welcome to AnE smart systems... </p>
+                <hr />
+                <div>
+                    <h3 id="Time"></h3>
+                    <h4 id="Date"></h4>
+                </div>
+                <hr />
+
+                <ul class="nav navbar-collapse nav-stacked" id="navigations">
+                    <li class="active"><a href="dashboard"><span class="glyphicon glyphicon-home"></span> Dashboard</a></li>
+                    <li><a href="picture"><span class="glyphicon glyphicon-picture"></span> View Pictures</a></li>
+                    <li><a href="light"><span class="glyphicon glyphicon-lamp"></span> Lights</a></li>
+                    <li><a href="message"><span class="glyphicon glyphicon-comment"></span> Messages</a></li>
+                    <li><a href="/" id="logout"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
+                </ul>
+                <br>
+            </div>
+            <br>
+            <div class="col-sm-9">
+                <h2 class="text-center">{{title}}</h2>
+                <hr />
+
+                <div class="panel panel-default">
+                    <div class="panel-heading custom_class">
+                        <h3 class="panel-title">
+                            Camera
+                        </h3>
+                    </div>
+                    <div class="panel-body">
+                        <label for="messageInput">Display Message:</label>
+                        <input type="text" class="form-control" id="messageInput" maxlength="32"><br />
+                        <button id="displayMessage" class="btn primary">Display Message on LCD</button>
+                        <button id="clearMessage" class="btn primary">Clear Message on LCD</button>
+                    </div>
+                </div>
+
+                <div class="panel panel-default">
+                    <div class="panel-heading custom_class">
+                        <h3 class="panel-title">
+                            Message History
+                        </h3>
+                    </div>
+                    <div class="panel-body">
+                        <table id="userMessage"></table>
+                    </div>
+                    <div class="panel-footer">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+
+<script>
+    (function () {
+        /************************** Variables *************************/
+        var baseUrl = "https://anesmartdoorbell.au-syd.mybluemix.net";
+        var userKey = localStorage.getItem('userKey')
+        var productKey = localStorage.getItem('productKey')
+
+        if (userKey == null || productKey == null) {
+            swal({
+                title: "Error",
+                text: "You are not Login",
+                confirmButtonText: "Login here",
+                type: "error"
+            }).then(function () {
+                localStorage.removeItem('userKey')
+                localStorage.removeItem('productKey')
+                window.location.href = "login";
+            });
+        }
+
+        /************************* Functions *************************/
+        function displayMsgHistory() {
+            $.ajax({
+                // Post username, password & the grant type to /token
+                url: baseUrl + '/api/device/message',
+                method: 'GET',
+                headers: {
+                    "content-type": "application/json",
+                    "userkey": userKey
+                },
+                success: function (response) {
+                    messageList = response.data;
+                    var $tableElement = $('#userMessage');
+
+                    var $dateTimeHeaderElement = $('<th></th>');
+                    $dateTimeHeaderElement.addClass('col-md-4 col-sm-6')
+                    $dateTimeHeaderElement.text("DateTimeSent");
+
+                    var $messageHeaderElement = $('<th></th>');
+                    $messageHeaderElement.addClass('col-md-4 col-sm-6')
+                    $messageHeaderElement.text("Message");
+
+                    var $headerRowElement = $('<tr></tr>');
+                    $headerRowElement.append($dateTimeHeaderElement);
+                    $headerRowElement.append($messageHeaderElement);
+                    $tableElement.append($headerRowElement);
+
+                    messageList.forEach(function (oneMessage) {
+
+                        var messageDateTime = oneMessage.datetime
+                        var messageMsg = oneMessage.message;
+
+                        var $oneMessageRowElement = $('<tr></tr>');
+
+                        var $dateTimeElement = $('<td></td>');
+                        $dateTimeElement.addClass('col-md-4 col-sm-6')
+                        $dateTimeElement.text(messageDateTime);
+
+                        var $messageElement = $('<td></td>');
+                        $messageElement.addClass('col-md-4 col-sm-6')
+                        $messageElement.text(messageMsg);
+
+                        $oneMessageRowElement.append($dateTimeElement);
+                        $oneMessageRowElement.append($messageElement);
+
+                        $tableElement.append($oneMessageRowElement)
+                    });
+                },
+                error: function (error) {
+                    console.dir(error)
+                }
+            });
+        }
+
+        //###############################################
+        //--------------- checkTime()------------------//
+        // add zero in front of numbers < 10
+        //###############################################
+        function checkTime(i) {
+            if (i < 10) { i = "0" + i };
+            return i;
+        }
+
+        //###############################################
+        //--------------- startTime()------------------//
+        // start running the clock on the web page
+        //###############################################
+        function startTime() {
+            var now = new Date;
+            var map = { '13': 1, '14': 2, '15': 3, '16': 4, '17': 5, '18': 6, '19': 7, '20': 8, '21': 9, '22': 10, '23': 11, '00': 12 }
+            h = checkTime(now.getHours());
+            m = checkTime(now.getMinutes());
+            s = checkTime(now.getSeconds());
+            var ampm = (h >= 12) ? "PM" : "AM";
+            var hh = (h > 12 || h == 00) ? map[h] : h
+            var time = hh + ':' + m + ':' + s + ' ' + ampm;
+            document.getElementById('Time').innerHTML = time
+            var t = setTimeout(startTime, 500);
+        }
+
+        //##########################################
+        //--------------- date()------------------//
+        // display the date on the web page
+        //##########################################
+        function date() {
+            var now = new Date;
+            year = now.getFullYear();
+            month = now.getMonth();
+            months = new Array('January', 'February', 'March', 'April', 'May', 'June', 'Jully', 'August', 'September', 'October', 'November', 'December');
+            d = now.getDate();
+            day = now.getDay();
+            days = new Array('Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday');
+            date = '' + days[day] + ', ' + d + ' ' + months[month] + ' ' + year;
+            $('#Date').text(date)
+        }
+
+        $('#displayMessage').on('click', function () {
+            $.ajax({
+                url: "/lcd",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({
+                    "action": "display",
+                    "productKey": productKey,
+                    "message": $('#messageInput').val()
+                }),
+                success: function (response) { }
+            })
+        })
+
+        $('#clearMessage').on('click', function () {
+            $.ajax({
+                url: "/lcd",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({
+                    "action": "clear",
+                    "productKey": productKey
+                }),
+                success: function (response) { }
+            })
+        })
+
+        $('#logout').on('click', function () {
+            swal({
+                title: 'Logging out',
+                showConfirmButton: false,
+            });
+            localStorage.removeItem("userKey");
+            localStorage.removeItem("productKey");
+        })
+
+
+        /************************* Run Functions *************************/
+        date();
+        setInterval(startTime, 500)
+        displayMsgHistory()
+    }())
+
+</script>
+
+<style>
+    #userMessage {
+        width: 90%;
+        margin: auto;
+    }
+
+    table,
+    th,
+    td {
+        border: 1px solid black;
+        border-collapse: collapse;
+    }
+</style>

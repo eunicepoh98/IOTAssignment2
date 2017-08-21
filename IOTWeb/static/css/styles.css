@@ -1,0 +1,29 @@
+.row.content {
+    height: 550px
+}
+
+.sidenav {
+    background-color: #212020;
+    color: #c4c2c2;
+    height: 800px;
+}
+
+a {
+    color: white;
+}
+
+#navigations {
+    font-size: 1.5rem;
+    color: white;
+}
+
+.panel>.panel-heading {
+    background-image: none;
+    background-color: #3b3b3b;
+    color: white;
+}
+
+.active {
+    background-color: #3b3b3b;
+    border-radius: 10px;
+}

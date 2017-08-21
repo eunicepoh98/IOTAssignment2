@@ -1,0 +1,101 @@
+<!-- All the files that are required -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ"
+    crossorigin="anonymous">
+<link href='http://fonts.googleapis.com/css?family=Varela+Round' rel='stylesheet' type='text/css'>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/6.6.7/sweetalert2.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/6.6.7/sweetalert2.css" />
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+
+
+<!-- Main Form -->
+<div class="login-form-1">
+    <div class="logo">Login</div>
+
+    <form id="login-form" class="text-left">
+        <div class="login-form-main-message"></div>
+        <div class="main-login-form">
+            <div class="login-group">
+                <div class="form-group">
+                    <label for="txtEmail" class="sr-only">Username</label>
+                    <input type="text" class="form-control" id="txtEmail" name="txtEmail" placeholder="Email">
+                </div>
+
+                <div class="form-group">
+                    <label for="txtPassword" class="sr-only">Password</label>
+                    <input type="password" class="form-control" id="txtPassword" name="txtPassword" placeholder="Password">
+                </div>
+            </div>
+            <button id="btnLogin" class=".login-button btn btn-primary" type="button">Login</i></button>
+        </div>
+
+        <div class="etc-login-form">
+            <p>Don't have an account? <a href="register">Register</a></p>
+        </div>
+    </form>
+</div>
+
+<script type="text/javascript">
+    (function () {
+        var baseUrl = "https://anesmartdoorbell.au-syd.mybluemix.net";
+
+        var userKey = localStorage.getItem("userKey")
+        var productKey = localStorage.getItem("productKey")
+        if (userKey != null && productKey != null) {
+            window.location.href = "dashboard"
+        }
+
+        $('#btnLogin').click(function () {
+            var emailInput = $('#txtEmail').val()
+            var passwordInput = $('#txtPassword').val()
+
+            swal({
+                title: 'Logging in',
+                showConfirmButton: false,
+                imageUrl: "https://media.tenor.com/images/d6cd5151c04765d1992edfde14483068/tenor.gif",
+                imageWidth: 80,
+                imageHeight: 80
+            });
+
+            $.ajax({
+                url: baseUrl + '/api/user/signin',
+                method: 'POST',
+                data: {
+                    "email": emailInput,
+                    "password": passwordInput
+                },
+                success: function (response) {
+                    if (response.success) {
+                        localStorage.setItem("userKey", response.userKey)
+                        localStorage.setItem("productKey", response.productKey)
+                        swal({
+                            title: "Success",
+                            text: response.message,
+                            confirmButtonText: "Ok",
+                            type: "success"
+                        }).then(function () {
+                            window.location.href = "dashboard";
+                        });
+                    } else {
+                        $('#txtEmail').val(null)
+                        $('#txtPassword').val(null)
+                        swal("Error", response.message, "error");
+                    }
+                },
+                error: function (error) {
+                    console.dir(error)
+                }
+            });
+        });
+    })();
+
+</script>
+
+<style>
+    body {
+        background: #3b3b3b;
+        padding: 10px;
+        font-family: 'Varela Round';
+    }
+</style>

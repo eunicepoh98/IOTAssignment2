@@ -1,0 +1,84 @@
+<!-- All the files that are required -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ"
+    crossorigin="anonymous">
+<link href='http://fonts.googleapis.com/css?family=Varela+Round' rel='stylesheet' type='text/css'>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/6.6.7/sweetalert2.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/6.6.7/sweetalert2.css" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/register.css') }}">
+
+<!-- Main Form -->
+<div class="login-form-1">
+    <div class="logo">Register</div>
+
+    <form id="login-form" class="text-left">
+        <div class="login-form-main-message"></div>
+        <div class="main-login-form">
+            <div class="login-group">
+                <div class="form-group">
+                    <label for="txtEmail" class="sr-only">Username</label>
+                    <input type="text" class="form-control" id="txtEmail" name="txtEmail" placeholder="Email">
+                </div>
+
+                <div class="form-group">
+                    <label for="txtPassword" class="sr-only">Password</label>
+                    <input type="password" class="form-control" id="txtPassword" name="txtPassword" placeholder="Password">
+                </div>
+
+                <div class="form-group">
+                    <label for="txtProductKey" class="sr-only">Product Key</label>
+                    <input type="text" class="form-control" id="txtProductKey" name="txtProductKey" placeholder="Product Key">
+                </div>
+            </div>
+            <button id="btnRegister" class=".login-button btn btn-primary" type="button">Register</i></button>
+        </div>
+
+        <div class="etc-login-form">
+            <p>Already have an account? <a href="login">Login</a></p>
+        </div>
+    </form>
+</div>
+
+<script type="text/javascript">
+    (function () {
+        var baseUrl = "https://anesmartdoorbell.au-syd.mybluemix.net";
+
+        var userKey = localStorage.getItem("userKey")
+        var productKey = localStorage.getItem("productKey")
+        if (userKey != null && productKey != null) {
+            window.location.href = "dashboard"
+        }
+
+        $('#btnRegister').click(function () {
+            console.log("ahah")
+            var emailInput = $('#txtEmail').val()
+            var passwordInput = $('#txtPassword').val()
+            var productKeyInput = $('#txtProductKey').val()
+
+
+            $.ajax({
+                // Post username, password & the grant type to /token
+                url: baseUrl + '/api/user/signup',
+                method: 'POST',
+                data: {
+                    "email": emailInput,
+                    "password": passwordInput,
+                    "productKey": productKeyInput
+                },
+                success: function (response) {
+                    if (response.success) {
+                        swal("Success", response.message, "success");
+                        window.location.href = "login"
+                    } else {
+                        swal("Error", response.message, "error");
+                    }
+                },
+                error: function (error) {
+                    console.dir(error)
+                }
+            });
+        });
+    })();
+
+</script>
